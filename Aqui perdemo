@@ -1,0 +1,30 @@
+def bfs(grafo, vertice_inicial):
+    fila = [vertice_inicial]  # Cria uma lista para a travessia
+    visitados = set([vertice_inicial])  # Cria um conjunto para os vértices já visitados
+    ordem_visita = []  # Lista para guardar a ordem de visitação
+
+    while fila:
+        vertice_atual = fila.pop()  # Remove o primeiro elemento da fila
+        ordem_visita.append(vertice_atual)  # Adiciona o vértice atual à lista de visitação
+
+        # Percorre todos os vizinhos do vértice atual
+        for vizinho in grafo[vertice_atual]:
+            if vizinho not in visitados:
+                visitados.add(vizinho)  # Adiciona o vizinho ao conjunto de visitados
+                fila.append(vizinho)  # Adiciona o vizinho à fila
+
+    return ordem_visita
+
+''''
+Exemplo, caso queira:
+grafo = {
+    0: [1, 2],
+    1: [0, 3, 4],
+    2: [0],
+    3: [1],
+    4: [1]
+}
+
+resultado = bfs(grafo, 0)
+print(resultado)  # Saída: [0, 1, 2, 3, 4] (ou alguma outra ordem, dependendo da estrutura)
+'''
