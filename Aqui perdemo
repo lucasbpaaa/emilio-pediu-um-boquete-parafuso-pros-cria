@@ -1,3 +1,5 @@
+#Question 1:
+
 def bfs(grafo, vertice_inicial):
     fila = [vertice_inicial]  # Cria uma lista para a travessia
     visitados = set([vertice_inicial])  # Cria um conjunto para os vértices já visitados
@@ -26,5 +28,227 @@ grafo = {
 }
 
 resultado = bfs(grafo, 0)
-print(resultado)  # Saída: [0, 1, 2, 3, 4] (ou alguma outra ordem, dependendo da estrutura)
+print(resultado)  
 '''
+
+#Question 2:
+
+def busca_propriedade(G: dict, value: object):
+    ''''
+    Queremos realizar uma busca em largura (BFS) em um grafo G e retorna o primeiro nó
+    que satisfizer a propriedade associada ao valor 'value'.
+    '''
+
+    fila = list(G.keys())  # Fila com todos os vértices do grafo
+    visitados = set()  # Conjunto para armazenar os vértices já visitados
+
+    while fila:
+        vertice_atual = fila.pop()  # Remove o primeiro vértice da fila
+        
+        if vertice_atual in visitados:
+            continue
+     
+        if vertice_atual == value:
+            return vertice_atual  # Retornaremos o vértice que possui a propriedade
+
+        visitados.add(vertice_atual)
+
+        for vizinho in G[vertice_atual]:
+            if vizinho not in visitados:
+                fila.append(vizinho)
+
+    return None  # Pode ser que nenhum vértice tenha a propriedade pedida
+
+''''
+Exemplo, caso queira:
+
+grafo = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D', 'E'],
+    'C': ['A', 'F'],
+    'D': ['B'],
+    'E': ['B'],
+    'F': ['C']
+}
+result = busca_propriedade(grafo, 'E')
+print(result)  
+'''
+
+#Question 3:
+
+def dfs(matrix, visited, i, j, m, n):
+    if i < 0 or j < 0 or i >= m or j >= n or visited[i][j] or matrix[i][j] == '0':
+        return
+    
+    visited[i][j] = True
+
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    for di, dj in directions:
+        dfs(matrix, visited, i + di, j + dj, m, n)
+
+def count_islands(matrix): #Função para contar o número de ilhas na matriz binária dada.
+    
+    if not matrix:
+        return 0
+    
+    m = len(matrix)
+    n = len(matrix[0])
+    
+    # Criar uma matriz para marcar as células visitadas
+    visited = [[False] * n for _ in range(m)]
+    
+    island_count = 0
+    
+    for i in range(m):
+        for j in range(n):
+            if matrix[i][j] == '1' and not visited[i][j]:
+                # Iniciamos uma busca DFS para explorar a ilha
+                dfs(matrix, visited, i, j, m, n)
+                island_count += 1
+    
+    return island_count
+
+def read_map_from_file(file_path):
+    with open(file_path, 'r') as file:
+        matrix = [list(line.strip()) for line in file.readlines()]
+    return matrix
+
+if __name__ == '__main__':
+
+    matrix = read_map_from_file('CodigosExcercicios/test_map.txt')
+    num_islands = count_islands(matrix)
+    print(f'Número de ilhas: {num_islands}')
+
+#Question 4:
+
+def dfs(matrix, visited, i, j, m, n, island_cells):
+
+    # Verificar se a célula está fora dos limites ou já foi visitada ou é água
+    if i < 0 or j < 0 or i >= m or j >= n or visited[i][j] or matrix[i][j] == '0':
+        return
+    
+    # Marcar a célula como visitada
+    visited[i][j] = True
+    
+    # Adicionar a célula atual às células da ilha
+    island_cells.append((i, j))
+
+    # Explorar todas as 8 direções (horizontal, vertical e diagonal)
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    for di, dj in directions:
+        dfs(matrix, visited, i + di, j + dj, m, n, island_cells)
+
+def count_islands(matrix):
+
+    if not matrix:
+        return 0, None, None
+    
+    m = len(matrix)
+    n = len(matrix[0])
+    
+    # Criar uma matriz para marcar as células visitadas
+    visited = [[False] * n for _ in range(m)]
+    
+    # Contador de ilhas
+    island_count = 0
+    
+    # Variáveis para armazenar a maior e a menor ilha
+    largest_island = None
+    smallest_island = None
+    largest_area = 0
+    smallest_area = float('inf')
+    
+    # Percorrer todas as células da matriz
+    for i in range(m):
+        for j in range(n):
+            # Se encontramos uma célula de terra ('1') e não foi visitada
+            if matrix[i][j] == '1' and not visited[i][j]:
+                # Listar as células da ilha atual
+                island_cells = []
+                dfs(matrix, visited, i, j, m, n, island_cells)
+                
+                # Calcular a área da ilha
+                island_area = len(island_cells)
+                
+                # Calcular o centroide da ilha
+                centroid_x = sum(x for x, y in island_cells) / island_area
+                centroid_y = sum(y for x, y in island_cells) / island_area
+                
+                # Atualizar a contagem de ilhas
+                island_count += 1
+                
+                # Verificar se a ilha é a maior ou a menor
+                if island_area > largest_area:
+                    largest_area = island_area
+                    largest_island = (centroid_x, centroid_y)
+                
+                if island_area < smallest_area:
+                    smallest_area = island_area
+                    smallest_island = (centroid_x, centroid_y)
+    
+    return island_count, largest_island, smallest_island
+
+# Função para ler a matriz de um arquivo
+def read_map_from_file(file_path):
+    with open(file_path, 'r') as file:
+        matrix = [list(line.strip()) for line in file.readlines()]
+    return matrix
+
+if __name__ == '__main__':
+    # Lendo a matriz a partir do arquivo
+    matrix = read_map_from_file('CodigosExcercicios/test_map.txt')
+    
+    # Contando o número de ilhas e obtendo os centroides da maior e menor ilha
+    num_islands, largest_island, smallest_island = count_islands(matrix)
+    
+    # Exibindo o número de ilhas e os centroides
+    print(f'Número de ilhas: {num_islands}')
+    print(f'Centroide da maior ilha: {largest_island}')
+    print(f'Centroide da menor ilha: {smallest_island}')
+
+#Question 5:
+
+def contains_lake(matrix):
+
+    m = len(matrix)
+    n = len(matrix[0])
+
+    # Função para verificar se uma célula de água está cercada por terra
+    def is_lake(i, j):
+        # Verificar se as direções acima, abaixo, esquerda e direita são terra ('1')
+        if i > 0 and matrix[i-1][j] != '1':  # Cima
+            return False
+        if i < m-1 and matrix[i+1][j] != '1':  # Baixo
+            return False
+        if j > 0 and matrix[i][j-1] != '1':  # Esquerda
+            return False
+        if j < n-1 and matrix[i][j+1] != '1':  # Direita
+            return False
+        return True
+
+    # Percorrer todas as células da matriz
+    for i in range(m):
+        for j in range(n):
+            # Verificar se a célula atual é água ('0')
+            if matrix[i][j] == '0':
+                # Verificar se é um lago
+                if is_lake(i, j):
+                    return True  # Encontramos um lago, retorna True
+    
+    return False  # Se nenhum lago for encontrado, retorna False
+
+# Função para ler a matriz de um arquivo
+def read_map_from_file(file_path):
+    with open(file_path, 'r') as file:
+        matrix = [list(line.strip()) for line in file.readlines()]
+    return matrix
+
+if __name__ == '__main__':
+    # Lendo a matriz a partir do arquivo
+    matrix = read_map_from_file('CodigosExcercicios/test_map.txt')
+    
+    # Verificando se a matriz contém um lago
+    if contains_lake(matrix):
+        print("A matriz contém um lago!")
+    else:
+        print("A matriz não contém um lago.")
