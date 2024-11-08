@@ -6,7 +6,7 @@ def bfs(grafo, vertice_inicial):
     ordem_visita = []  # Lista para guardar a ordem de visitação
 
     while fila:
-        vertice_atual = fila.pop()  # Remove o primeiro elemento da fila
+        vertice_atual = fila.pop(0)  # Remove o primeiro elemento da fila
         ordem_visita.append(vertice_atual)  # Adiciona o vértice atual à lista de visitação
 
         # Percorre todos os vizinhos do vértice atual
@@ -33,23 +33,18 @@ print(resultado)
 
 #Question 2:
 
-def busca_propriedade(G: dict, value: object):
-    ''''
-    Queremos realizar uma busca em largura (BFS) em um grafo G e retorna o primeiro nó
-    que satisfizer a propriedade associada ao valor 'value'.
-    '''
-
-    fila = list(G.keys())  # Fila com todos os vértices do grafo
-    visitados = set()  # Conjunto para armazenar os vértices já visitados
+def busca_propriedade(G: dict, vertice_inicial, value):
+    fila = [vertice_inicial]  # Começa com o vértice inicial
+    visitados = set()  # Conjunto para armazenar os vértices visitados
 
     while fila:
-        vertice_atual = fila.pop()  # Remove o primeiro vértice da fila
-        
+        vertice_atual = fila.pop(0)  # Remove o primeiro vértice da fila
+
         if vertice_atual in visitados:
             continue
-     
-        if vertice_atual == value:
-            return vertice_atual  # Retornaremos o vértice que possui a propriedade
+
+        if vertice_atual == value:  # Verifica se o vértice atual é o que procuramos
+            return vertice_atual
 
         visitados.add(vertice_atual)
 
@@ -57,7 +52,8 @@ def busca_propriedade(G: dict, value: object):
             if vizinho not in visitados:
                 fila.append(vizinho)
 
-    return None  # Pode ser que nenhum vértice tenha a propriedade pedida
+    return None  # Retorna None se não encontrar o valor
+
 
 ''''
 Exemplo, caso queira:
@@ -70,185 +66,232 @@ grafo = {
     'E': ['B'],
     'F': ['C']
 }
-result = busca_propriedade(grafo, 'E')
-print(result)  
+
+resultado = busca_propriedade(grafo, 'A', 'E')
+print(resultado)  # Saída esperada: 'E'
 '''
+
 
 #Question 3:
 
-def dfs(matrix, visited, i, j, m, n):
-    if i < 0 or j < 0 or i >= m or j >= n or visited[i][j] or matrix[i][j] == '0':
-        return
-    
-    visited[i][j] = True
 
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-    for di, dj in directions:
-        dfs(matrix, visited, i + di, j + dj, m, n)
 
-def count_islands(matrix): #Função para contar o número de ilhas na matriz binária dada.
+def ilhas(matriz, centroide=False):
+    """
+    Função para encontrar as ilhas em uma matriz e, opcionalmente, calcular o centroide
+    da maior e menor ilha.
+    """
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+    explorados = []  
+    ilhas = {}  # Para armazenar as ilhas encontradas
+    count_ilhas = 0
     
-    if not matrix:
-        return 0
-    
-    m = len(matrix)
-    n = len(matrix[0])
-    
-    # Criar uma matriz para marcar as células visitadas
-    visited = [[False] * n for _ in range(m)]
-    
-    island_count = 0
-    
-    for i in range(m):
-        for j in range(n):
-            if matrix[i][j] == '1' and not visited[i][j]:
-                # Iniciamos uma busca DFS para explorar a ilha
-                dfs(matrix, visited, i, j, m, n)
-                island_count += 1
-    
-    return island_count
+    for i in range(len(matriz)):
+        for j in range(len(matriz[0])):
+            if matriz[i][j] == '1' and (i, j) not in explorados:
+                fronteira = [(i, j)]
+                ilha = []
+                while fronteira:  # Explora a ilha atual
+                    current_cell = fronteira.pop(0)
 
-def read_map_from_file(file_path):
-    with open(file_path, 'r') as file:
-        matrix = [list(line.strip()) for line in file.readlines()]
-    return matrix
+                    if current_cell not in explorados:
+                        explorados.append(current_cell)
+                        ilha.append(current_cell)
 
-if __name__ == '__main__':
+                    for dx, dy in directions:
+                        nx, ny = current_cell[0] + dx, current_cell[1] + dy
+                        
+                        if 0 <= nx < len(matriz) and 0 <= ny < len(matriz[0]):
+                            if matriz[nx][ny] == '1' and (nx, ny) not in explorados:
+                                fronteira.append((nx, ny))
+                
+                # Adiciona a ilha encontrada na lista de ilhas
+                ilhas[count_ilhas] = ilha
+                count_ilhas += 1  # Incrementa o contador de ilhas
 
-    matrix = read_map_from_file('CodigosExcercicios/test_map.txt')
-    num_islands = count_islands(matrix)
-    print(f'Número de ilhas: {num_islands}')
+    if centroide:
+        if count_ilhas > 0:
+            maior = [0, len(ilhas[0])]
+            menor = [0, len(ilhas[0])]
+            for indice in ilhas.keys():
+                if len(ilhas[indice]) > maior[1]:
+                    maior = [indice, len(ilhas[indice])]
+                elif len(ilhas[indice]) < menor[1]:
+                    menor = [indice, len(ilhas[indice])]
+
+            x_ma, y_ma = 0, 0
+            x_me, y_me = 0, 0
+            for celula in ilhas[maior[0]]:
+                x_ma += celula[0]
+                y_ma += celula[1]
+            for celula in ilhas[menor[0]]:
+                x_me += celula[0]
+                y_me += celula[1]
+
+            centroide_ma = [x_ma / len(ilhas[maior[0]]), y_ma / len(ilhas[maior[0]])]
+            centroide_me = [x_me / len(ilhas[menor[0]]), y_me / len(ilhas[menor[0]])]
+
+            print(f'O centróide da maior ilha é: {centroide_ma}')
+            print(f'O centróide da menor ilha é: {centroide_me}')
+        else:
+            print('Não existem ilhas na matriz dada.')
+
+    return count_ilhas
+
+def ler_matriz_do_arquivo(nome_arquivo):
+    """
+    Lê o arquivo e retorna uma matriz com os dados.
+    A matriz deve ser composta por números '1' e '0' separados por espaços.
+    """
+    matriz = []
+    with open(nome_arquivo, 'r') as arquivo:
+        for linha in arquivo:
+            # Dividimos a linha por espaços e removemos a nova linha no final
+            # Convertendo para uma lista de strings
+            matriz.append(linha.split())
+    return matriz
+
+# Nome do arquivo que contém a matriz
+nome_arquivo = 'matriz.txt'  # Substitua pelo caminho correto do arquivo
+
+# Lê a matriz do arquivo
+matriz = ler_matriz_do_arquivo(nome_arquivo)
+# Exibe o número de ilhas encontradas e, se solicitado, os centroides
+print(f'Número de ilhas encontradas: {ilhas(matriz, centroide=True)}')
+
 
 #Question 4:
 
-def dfs(matrix, visited, i, j, m, n, island_cells):
+def ilhas(matriz, centroide=False):
+    """
+    Função para encontrar as ilhas em uma matriz e, opcionalmente, calcular o centroide
+    da maior e menor ilha.
+    """
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+    explorados = []  
+    ilhas = {}  # Para armazenar as ilhas encontradas
+    count_ilhas = 0
+    
+    for i in range(len(matriz)):
+        for j in range(len(matriz[0])):
+            if matriz[i][j] == '1' and (i, j) not in explorados:
+                fronteira = [(i, j)]
+                ilha = []
+                while fronteira:  # Explora a ilha atual
+                    current_cell = fronteira.pop(0)
 
-    # Verificar se a célula está fora dos limites ou já foi visitada ou é água
-    if i < 0 or j < 0 or i >= m or j >= n or visited[i][j] or matrix[i][j] == '0':
-        return
-    
-    # Marcar a célula como visitada
-    visited[i][j] = True
-    
-    # Adicionar a célula atual às células da ilha
-    island_cells.append((i, j))
+                    if current_cell not in explorados:
+                        explorados.append(current_cell)
+                        ilha.append(current_cell)
 
-    # Explorar todas as 8 direções (horizontal, vertical e diagonal)
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-    for di, dj in directions:
-        dfs(matrix, visited, i + di, j + dj, m, n, island_cells)
-
-def count_islands(matrix):
-
-    if not matrix:
-        return 0, None, None
-    
-    m = len(matrix)
-    n = len(matrix[0])
-    
-    # Criar uma matriz para marcar as células visitadas
-    visited = [[False] * n for _ in range(m)]
-    
-    # Contador de ilhas
-    island_count = 0
-    
-    # Variáveis para armazenar a maior e a menor ilha
-    largest_island = None
-    smallest_island = None
-    largest_area = 0
-    smallest_area = float('inf')
-    
-    # Percorrer todas as células da matriz
-    for i in range(m):
-        for j in range(n):
-            # Se encontramos uma célula de terra ('1') e não foi visitada
-            if matrix[i][j] == '1' and not visited[i][j]:
-                # Listar as células da ilha atual
-                island_cells = []
-                dfs(matrix, visited, i, j, m, n, island_cells)
+                    for dx, dy in directions:
+                        nx, ny = current_cell[0] + dx, current_cell[1] + dy
+                        
+                        if 0 <= nx < len(matriz) and 0 <= ny < len(matriz[0]):
+                            if matriz[nx][ny] == '1' and (nx, ny) not in explorados:
+                                fronteira.append((nx, ny))
                 
-                # Calcular a área da ilha
-                island_area = len(island_cells)
-                
-                # Calcular o centroide da ilha
-                centroid_x = sum(x for x, y in island_cells) / island_area
-                centroid_y = sum(y for x, y in island_cells) / island_area
-                
-                # Atualizar a contagem de ilhas
-                island_count += 1
-                
-                # Verificar se a ilha é a maior ou a menor
-                if island_area > largest_area:
-                    largest_area = island_area
-                    largest_island = (centroid_x, centroid_y)
-                
-                if island_area < smallest_area:
-                    smallest_area = island_area
-                    smallest_island = (centroid_x, centroid_y)
-    
-    return island_count, largest_island, smallest_island
+                # Adiciona a ilha encontrada na lista de ilhas
+                ilhas[count_ilhas] = ilha
+                count_ilhas += 1  # Incrementa o contador de ilhas
 
-# Função para ler a matriz de um arquivo
-def read_map_from_file(file_path):
-    with open(file_path, 'r') as file:
-        matrix = [list(line.strip()) for line in file.readlines()]
-    return matrix
+    # Retorno dos centroides das ilhas maior e menor
+    centroide_ma = centroide_me = None
 
-if __name__ == '__main__':
-    # Lendo a matriz a partir do arquivo
-    matrix = read_map_from_file('CodigosExcercicios/test_map.txt')
-    
-    # Contando o número de ilhas e obtendo os centroides da maior e menor ilha
-    num_islands, largest_island, smallest_island = count_islands(matrix)
-    
-    # Exibindo o número de ilhas e os centroides
-    print(f'Número de ilhas: {num_islands}')
-    print(f'Centroide da maior ilha: {largest_island}')
-    print(f'Centroide da menor ilha: {smallest_island}')
+    if centroide:
+        if count_ilhas > 0:
+            maior = [0, len(ilhas[0])]
+            menor = [0, len(ilhas[0])]
+            for indice in ilhas.keys():
+                if len(ilhas[indice]) > maior[1]:
+                    maior = [indice, len(ilhas[indice])]
+                elif len(ilhas[indice]) < menor[1]:
+                    menor = [indice, len(ilhas[indice])]
+
+            x_ma, y_ma = 0, 0
+            x_me, y_me = 0, 0
+            for celula in ilhas[maior[0]]:
+                x_ma += celula[0]
+                y_ma += celula[1]
+            for celula in ilhas[menor[0]]:
+                x_me += celula[0]
+                y_me += celula[1]
+
+            # Calcula o centroide (média das coordenadas)
+            centroide_ma = [x_ma / len(ilhas[maior[0]]), y_ma / len(ilhas[maior[0]])]
+            centroide_me = [x_me / len(ilhas[menor[0]]), y_me / len(ilhas[menor[0]])]
+
+            print(f'O centróide da maior ilha é: {centroide_ma}')
+            print(f'O centróide da menor ilha é: {centroide_me}')
+        else:
+            print('Não existem ilhas na matriz dada.')
+
+    return count_ilhas, centroide_ma, centroide_me
+
+def ler_matriz_do_arquivo(nome_arquivo):
+    """
+    Lê o arquivo e retorna uma matriz com os dados.
+    A matriz deve ser composta por números '1' e '0' separados por espaços.
+    """
+    matriz = []
+    with open(nome_arquivo, 'r') as arquivo:
+        for linha in arquivo:
+            # Dividimos a linha por espaços e removemos a nova linha no final
+            # Convertendo para uma lista de strings
+            matriz.append(linha.split())
+    return matriz
+
+# Nome do arquivo que contém a matriz
+nome_arquivo = 'matriz.txt'  # Substitua pelo caminho correto do arquivo
+
+# Lê a matriz do arquivo
+matriz = ler_matriz_do_arquivo(nome_arquivo)
+
+# Exibe o número de ilhas encontradas, e as coordenadas dos centroides
+num_ilhas, centroide_maior, centroide_menor = ilhas(matriz, centroide=True)
+
+print(f'Número de ilhas encontradas: {num_ilhas}')
+print(f'Coordenadas do centróide da maior ilha: {centroide_maior}')
+print(f'Coordenadas do centróide da menor ilha: {centroide_menor}')
+
+
 
 #Question 5:
 
-def contains_lake(matrix):
-
-    m = len(matrix)
-    n = len(matrix[0])
-
-    # Função para verificar se uma célula de água está cercada por terra
-    def is_lake(i, j):
-        # Verificar se as direções acima, abaixo, esquerda e direita são terra ('1')
-        if i > 0 and matrix[i-1][j] != '1':  # Cima
-            return False
-        if i < m-1 and matrix[i+1][j] != '1':  # Baixo
-            return False
-        if j > 0 and matrix[i][j-1] != '1':  # Esquerda
-            return False
-        if j < n-1 and matrix[i][j+1] != '1':  # Direita
-            return False
-        return True
-
-    # Percorrer todas as células da matriz
-    for i in range(m):
-        for j in range(n):
-            # Verificar se a célula atual é água ('0')
-            if matrix[i][j] == '0':
-                # Verificar se é um lago
-                if is_lake(i, j):
-                    return True  # Encontramos um lago, retorna True
+def lago(matriz):
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (1, 1), (-1, -1), (1, -1), (-1, 1)]  # Cima, baixo, esquerda e direita
+    explorados = []
+    linhas, colunas = len(matriz), len(matriz[0])
     
-    return False  # Se nenhum lago for encontrado, retorna False
+    # Verificar cada célula da matriz
+    for i in range(linhas):
+        for j in range(colunas):
+            # Se encontramos uma célula de água não explorada
+            if matriz[i][j] == 0 and (i, j) not in explorados:
+                # Usar uma fila para a busca em largura
+                fronteira = [(i, j)]
+                explorados.add((i, j))
+                is_lake = True  # Assume que é um lago, até que se prove o contrário
 
-# Função para ler a matriz de um arquivo
-def read_map_from_file(file_path):
-    with open(file_path, 'r') as file:
-        matrix = [list(line.strip()) for line in file.readlines()]
-    return matrix
+                while fronteira:
+                    x, y = fronteira.pop(0)
 
-if __name__ == '__main__':
-    # Lendo a matriz a partir do arquivo
-    matrix = read_map_from_file('CodigosExcercicios/test_map.txt')
-    
-    # Verificando se a matriz contém um lago
-    if contains_lake(matrix):
-        print("A matriz contém um lago!")
-    else:
-        print("A matriz não contém um lago.")
+                    # Se a região de água tocar a borda da matriz, não é um lago
+                    if x == 0 or y == 0 or x == linhas - 1 or y == colunas - 1:
+                        is_lake = False
+                    
+                    for dx, dy in directions:
+                        nx, ny = x + dx, y + dy
+                        
+                        # Verificar se a célula adjacente está dentro dos limites
+                        if 0 <= nx < linhas and 0 <= ny < colunas:
+                            # Se a célula adjacente é água e ainda não foi explorada
+                            if matriz[nx][ny] == 0 and (nx, ny) not in explorados:
+                                explorados.add((nx, ny))
+                                fronteira.append((nx, ny))
+                
+                # Se encontramos uma região de água que é um lago, retornamos True
+                if is_lake:
+                    return True
+
+    return False  # Não encontrou nenhum lago
